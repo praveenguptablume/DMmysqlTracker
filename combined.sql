@@ -962,6 +962,9 @@ alter table managedinvoice
 add column ORIOFFICECODE varchar(10),
 add column ORIPARTYCODE varchar(10);
 
+ALTER TABLE workorderreference 
+ADD COLUMN OFFICECODE VARCHAR(20) NULL AFTER `ISACTIVE`;																
+					
 alter table managedgroup
 add column RECPARTYCODE varchar(10),
 add column ORIPARTYCODE varchar(10);
