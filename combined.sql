@@ -962,12 +962,126 @@ alter table managedinvoice
 add column ORIOFFICECODE varchar(10),
 add column ORIPARTYCODE varchar(10);
 
-
 ALTER TABLE workorderreference 
 ADD COLUMN OFFICECODE VARCHAR(20) NULL AFTER `ISACTIVE`;																
+					
+alter table managedgroup
+add column RECPARTYCODE varchar(10),
+add column ORIPARTYCODE varchar(10);
 																
+CREATE OR REPLACE VIEW `vwinvoicedcharges` AS
+    SELECT 
+        `ch`.`CHARGEID` AS `CHARGEID`,
+        `wo`.`WORKORDERID` AS `WORKORDERID`,
+        `wo`.`ORIGINATORCODE` AS `ORIGINATORCODE`,
+        `wo`.`ORIGINATORNAME` AS `ORIGINATORNAME`,
+        `wo`.`RECEIVERNAME` AS `RECEIVERNAME`,
+        `wo`.`RECEIVERCODE` AS `RECEIVERCODE`,
+        `wo`.`WORKORDERNUMBER` AS `WORKORDERNUMBER`,
+        `s`.`DESCRIPTION` AS `STATUS`,
+        `wo`.`BOOKINGNUMBER` AS `BOOKINGNUMBER`,
+        `wo`.`BILLOFLADINGNUMBER` AS `BILLOFLADINGNUMBER`,
+        `wo`.`VESSEL` AS `VESSEL`,
+        `wo`.`VOYAGE` AS `VOYAGE`,
+        `ewo`.`EQUIPMENTNUMBER` AS `EQUIPMENTNUMBER`,
+        `ewo`.`EQUIPMENTTYPECODE` AS `EQSIZE`,
+        `ewo`.`SHIPMENTNUMBER` AS `SHIPMENTNUMBER`,
+        `seq`.`DESCRIPTION` AS `EQUIPMENTSTATUS`,
+        `ch`.`TRANSACTIONNUMBER` AS `TRANSACTIONNUMBER`,
+        `cs`.`NAME` AS `SERVICE`,
+        `ch`.`AMOUNT` AS `AMOUNT`,
+        `ch`.`FSCPERCENT` AS `FSCPERCENT`,
+        `ch`.`FSCAMOUNT` AS `FSCAMOUNT`,
+        (`ch`.`AMOUNT` + COALESCE(`ch`.`FSCAMOUNT`, 0)) AS `SUBTOTAL`,
+        `stop`.`NAME` AS `STOPNAME`,
+        `wo`.`DATECOMPLETED` AS `COMPLETIONDATE`,
+        `wo`.`DATECREATED` AS `DATECREATED`,
+        `ch`.`INVOICEABLEDATE` AS `INVOICEABLEDATE`
+    FROM
+        ((((((`workorder` `wo`
+        JOIN `equipmentonworkorder` `ewo` ON ((`wo`.`WORKORDERID` = `ewo`.`WORKORDERID`)))
+        JOIN `charge` `ch` ON ((`ch`.`EQUIPMENTWORKORDERID` = `ewo`.`EQUIPMENTONWORKORDERID`)))
+        LEFT JOIN `stop` ON ((`stop`.`STOPID` = `ch`.`STOPID`)))
+        JOIN `chargeableservices` `cs` ON ((`cs`.`SERVICEID` = `ch`.`SERVICEID`)))
+        JOIN `status` `s` ON ((`wo`.`STATUSID` = `s`.`STATUSID`)))
+        JOIN `status` `seq` ON ((`ewo`.`STATUSID` = `seq`.`STATUSID`)))
+    WHERE
+        ((`ch`.`ISBILLABLE` = 1)
+            AND (`ch`.`ISINVOICED` = 0)
+            AND (`wo`.`STATUSID` NOT IN (7 , 11))
+            AND (`ch`.`INVOICEABLEDATE` IS NOT NULL))
+    ORDER BY `wo`.`WORKORDERNUMBER`													
 																
-																
+CREATE OR REPLACE VIEW `vwinvoicedetails` AS
+    SELECT 
+        `invoice`.`INVOICEID` AS `INVOICEID`,
+        `invoice`.`INVOICENUMBER` AS `INVOICENUMBER`,
+        `invoice`.`RECEIVERCODE` AS `RECEIVERCODE`,
+        `invoice`.`ORIGINATORCODE` AS `ORIGINATORCODE`,
+        `invoice`.`FROMRECEIVER` AS `FROMRECEIVER`,
+        `invoice`.`BILLTO` AS `BILLTO`,
+        `invoice`.`DATECREATED` AS `DATECREATED`,
+        `invoice`.`DATESEND` AS `DATESEND`,
+        `invoice`.`DATEAPPROVED` AS `DATEAPPROVED`,
+        `invoice`.`DATEREJECTED` AS `DATEREJECTED`,
+        `invoice`.`DATECOMPLETED` AS `DATECOMPLETED`,
+        `invoicestatus`.`DESCRIPTION` AS `STATUS`,
+        `invoicedetails`.`INVOICEDETAILSID` AS `INVOICEDETAILSID`,
+        `workorder`.`WORKORDERNUMBER` AS `WORKORDERNUMBER`,
+        `workorder`.`WORKORDERID` AS `WORKORDERID`,
+        `workorder`.`CATEGORY` AS `CATEGORY`,
+        `categorytype`.`DESCRIPTION` AS `CATEGORYTYPE`,
+        `workorder`.`BOOKINGNUMBER` AS `BOOKINGNUMBER`,
+        `workorder`.`BILLOFLADINGNUMBER` AS `BILLOFLADINGNUMBER`,
+        `workorder`.`DATECOMPLETED` AS `WOCOMPLETIONDATE`,
+        `workorder`.`VENDORNUMBER` AS `VENDORNUMBER`,
+        `workorder`.`VESSEL` AS `VESSEL`,
+        `workorder`.`VOYAGE` AS `VOYAGE`,
+        `invoice`.`EQUIPMENTNUMBERS` AS `EQUIPMENTNUMBERS`,
+        `invoicedetails`.`EQUIPMENTNUMBER` AS `EQUIPMENTNUMBER`,
+        `invoice`.`REJECTIONREASON` AS `REJECTIONREASON`,
+        `equipmentonworkorder`.`EQUIPMENTTYPECODE` AS `EQUIPMENTTYPECODE`,
+        `equipmentonworkorder`.`SHIPMENTNUMBER` AS `SHIPMENTNUMBER`,
+        `stops`.`ORIGINNAME` AS `ORIGIN`,
+        `stops`.`ORIGINCITY` AS `ORIGINCITY`,
+        `stops`.`DESTINATIONNAME` AS `DESTINATION`,
+        `stops`.`DESTINATIONCITY` AS `DESTINATIONCITY`,
+        `chargeableservices`.`NAME` AS `SERVICE`,
+        `charge`.`TRANSACTIONNUMBER` AS `TRANSACTIONNUMBER`,
+        `charge`.`AMOUNT` AS `AMOUNT`,
+        `charge`.`INVOICEABLEDATE` AS `INVOICEABLEDATE`,
+        `charge`.`FSCPERCENT` AS `FSCPERCENT`,
+        `charge`.`FSCAMOUNT` AS `FSCAMOUNT`,
+        (COALESCE(`charge`.`AMOUNT`, 0) + COALESCE(`charge`.`FSCAMOUNT`, 0)) AS `SUBTOTAL`,
+        COALESCE(`invoice`.`TOTALAMOUNT`, 0) AS `TOTALAMOUNT`,
+        `invoice`.`DATEINVOICERECEIVED` AS `DATEINVOICERECEIVED`,
+        `invoice`.`INVOICERECEIVEDAMOUNT` AS `INVOICERECEIVEDAMOUNT`,
+        `invoice`.`INVOICERECEIVEDCURRENCY` AS `INVOICERECEIVEDCURRENCY`,
+        `invoice`.`DATEPAYMENTREQUESTED` AS `DATEPAYMENTREQUESTED`,
+        `invoice`.`PAYMENTREQUESTEDAMOUNT` AS `PAYMENTREQUESTEDAMOUNT`,
+        `invoice`.`PAYMENTREQUESTEDCURRENCY` AS `PAYMENTREQUESTEDCURRENCY`,
+        `invoice`.`DATEPAYMENTISSUED` AS `DATEPAYMENTISSUED`,
+        `invoice`.`PAYMENTISSUEDAMOUNT` AS `PAYMENTISSUEDAMOUNT`,
+        `invoice`.`PAYMENTISSUEDCURRENCY` AS `PAYMENTISSUEDCURRENCY`
+    FROM
+        (((((((((`invoice`
+        JOIN `invoicedetails` ON ((`invoice`.`INVOICEID` = `invoicedetails`.`INVOICEID`)))
+        JOIN `charge` ON ((`invoicedetails`.`CHARGEID` = `charge`.`CHARGEID`)))
+        JOIN `equipmentonworkorder` ON ((`equipmentonworkorder`.`EQUIPMENTONWORKORDERID` = `charge`.`EQUIPMENTWORKORDERID`)))
+        JOIN `workorder` ON ((`equipmentonworkorder`.`WORKORDERID` = `workorder`.`WORKORDERID`)))
+        JOIN `workorderlookup` `stops` ON ((`stops`.`WORKORDERID` = `workorder`.`WORKORDERID`)))
+        JOIN `invoicestatus` ON ((`invoicestatus`.`STATUSID` = `invoice`.`STATUSID`)))
+        JOIN `chargeableservices` ON ((`charge`.`SERVICEID` = `chargeableservices`.`SERVICEID`)))
+        JOIN `category` ON ((`category`.`ID` = `workorder`.`CATEGORYID`)))
+        JOIN `categorytype` ON ((`category`.`TYPE` = `categorytype`.`ID`)))
+
+
+
+
+
+
+
+											
 
 
 
