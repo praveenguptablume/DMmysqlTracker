@@ -32,59 +32,6 @@ BEGIN
 END $$
 DELIMITER ;
 
-CREATE OR REPLACE VIEW `VWADVANCEDFILTER` (`WORKORDERID`, `WORKORDERNUMBER`, `ORIGINATOR`, `RECEIVER`, `ORIGINATORNAME`, `RECEIVERNAME`, `BILLOFLADING`, `BOOKINGNUMBER`, `CATEGORY`, `CATEGORYTYPE`, `STATUS`, `WORKORDERDATE`, `DATECREATED`, `EXPORTCUTOFFDATE`, `SOURCE`, `VESSEL`, `VOYAGE`, `CUTTOFFDATE`, `PORTOFLOADING`, `PORTOFDISCHARGE`, `ORIGINNAME`, `ORIGINCITY`, `DESTINATIONNAME`, `DESTINATIONCITY`, `EQUIPMENTNUMBER`, `LASTFREEDAY`, `RESPONDBYDATE`, `CREATEDBY`, `ASSIGNEDBY`, `EQUIPMENTTYPECODE`, `ORIGINATORID`, `ETA`, `CATEGORYTRIP`, `OFFERPENDING`, `OFFERCATEGORY`, `ISATTACHMENT`, `CARRIERCODE`, `ORIGINZIP`, `DESTINATIONZIP`, `EQUIPMENTCLASS`, `RECEIVERID`, `SHIPMENTREFERENCENUMBER`) AS 
-  SELECT wo.workorderid workorderid,
-wo.workordernumber workordernumber,
-wo.originatorid originator,
-wo.receiverid receiver,
-wo.originatorname originatorname,
-wo.receivername receivername,
-wo.billofladingnumber billoflading,
-wo.bookingnumber bookingnumber,
-cat.NAME CATEGORY,
-catt.description categorytype,
-st.description status,
-wo.workorderdate workorderdate,
-wo.datecreated datecreated,
-wo.exportcutoffdate exportcutoffdate,
-wo.SOURCE SOURCE,
-wo.vessel vessel,
-wo.voyage voyage,
-wo.exportcutoffdate cuttoffdate,
-wo.portofloading portofloading,
-wo.portofdischarge portofdischarge,
-wol.originname originname,
-wol.origincity origincity,
-wol.destinationname destinationname,
-wol.destinationcity destinationcity,
-wol.equipmentnumbers equipmentnumber,
-wo.lastfreeday lastfreeday,
-wo.respondbydate respondbydate,
-wo.createdby createdby,
-wo.assignedby assignedby,
-WOL.EQUIPMENTTYPECODES EQUIPMENTTYPECODE,
-wo.originatorid originatorid,
-wo.eta eta,
-catp.description categorytrip,
-OFFER_CHECK(wo.workorderid) as OFFERPENDING,
-OFFER_CATEGORY(wo.workorderid) as OFFERCATEGORY,
-wol.ISATTACHMENT ISATTACHMENT,
-wo.CARRIERCODE CARRIERCODE,
-wol.ORIGINZIP ORIGINZIP,
-wol.DESTINATIONZIP DESTINATIONZIP,
-wol.EQUIPMENTCLASS EQUIPMENTCLASS,
-wo.RECEIVERID RECEIVERID,
-wo.SHIPMENTREFERENCENUMBER SHIPMENTREFERENCENUMBER
-FROM
-	workorder wo
-left join workorderlookup wol on wo.workorderid = wol.workorderid
-left join status st on wo.statusid = st.statusid
-left join CATEGORY cat on cat.ID = wo.categoryid
-left join categorytype catt on cat.TYPE = catt.ID
-left join partnership p on wo.ORIGINATORID = p.organization_dbid and wo.RECEIVERID = p.organization_partner_dbid
-left join categorytrip catp on cat.TRIP = catp.ID
-ORDER BY wo.workordernumber;
-
 -- 505
 ALTER TABLE equipmentonworkorder ADD REEFERTEMP double(9,2);
 ALTER TABLE equipmentonworkorder ADD REEFERTEMPUNIT VARCHAR(2);
