@@ -1019,7 +1019,35 @@ CREATE OR REPLACE VIEW `vwinvoicedetails` AS
         JOIN `category` ON ((`category`.`ID` = `workorder`.`CATEGORYID`)))
         JOIN `categorytype` ON ((`category`.`TYPE` = `categorytype`.`ID`)))
 
-
+CREATE or replace VIEW `vwbiddedoffer` AS
+    SELECT 
+        `dmsi`.`offer`.`OFFERID` AS `OFFERID`,
+        `dmsi`.`offer`.`WORKORDERID` AS `WORKORDERID`,
+        `dmsi`.`offer`.`WORKORDERNUMBER` AS `WORKORDERNUMBER`,
+        `dmsi`.`offer`.`OFFERDATE` AS `OFFERDATE`,
+        `dmsi`.`offer`.`EQUIPMENTNUMBER` AS `EQUIPMENTNUMBER`,
+        `dmsi`.`offer`.`PICKUPNAME` AS `PICKUPNAME`,
+        `dmsi`.`offer`.`DELIVERYNAME` AS `DELIVERYNAME`,
+        `dmsi`.`offer`.`BOL_BKG` AS `BOL_BKG`,
+        `dmsi`.`offer`.`OFFERRATE` AS `OFFERRATE`,
+        `dmsi`.`offer`.`ORIGINATORFACILITYCODE` AS `ORIGINATORFACILITYCODE`,
+        `dmsi`.`offer`.`OFFERTYPE` AS `OFFERTYPE`,
+        `dmsi`.`offer`.`DUEDATE` AS `DUEDATE`,
+        `dmsi`.`offer`.`OFFERCATEGORY` AS `OFFERCATEGORY`,
+        `dmsi`.`offer`.`SECONDWORKORDERID` AS `SECONDWORKORDERID`,
+        `dmsi`.`offer`.`CATEGORY` AS `CATEGORY`,
+        `b`.`numberOfBids` AS `NUMBEROFBIDS`,
+        `b`.`lowestRate` AS `LOWESTRATE`,
+        `dmsi`.`offer`.`STATUS` AS `OFFERSTATUS`
+    FROM
+        (`dmsi`.`offer`
+        LEFT JOIN (SELECT 
+            `dmsi`.`bid`.`OFFERID` AS `offerId`,
+                COUNT(0) AS `numberOfBids`,
+                MIN(`dmsi`.`bid`.`RECEIVERRATE`) AS `lowestRate`
+        FROM
+            `dmsi`.`bid`
+        GROUP BY `dmsi`.`bid`.`OFFERID`) `b` ON ((`dmsi`.`offer`.`OFFERID` = `b`.`offerId`)))
 
 
 
