@@ -1984,4 +1984,7 @@ if v_event = '2' THEN
 	 UPDATE X_WORKORDER SET RECEIVERCODE = v_receivercode WHERE workorderid = v_workorderid ;
   end if;
 
-END												
+END
+
+----617
+ALTER TABLE WORKORDERREJECTION MODIFY PARTYID INT NULL;													  
