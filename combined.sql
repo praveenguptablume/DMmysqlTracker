@@ -1041,7 +1041,8 @@ CREATE or replace VIEW `vwbiddedoffer` AS
                 MIN(`dmsi`.`bid`.`RECEIVERRATE`) AS `lowestRate`
         FROM
             `dmsi`.`bid`
-        GROUP BY `dmsi`.`bid`.`OFFERID`) `b` ON ((`dmsi`.`offer`.`OFFERID` = `b`.`offerId`)))
+        GROUP BY `dmsi`.`bid`.`OFFERID`) `b` ON ((`dmsi`.`offer`.`OFFERID` = `b`.`offerId`)));
 
 
-
+alter table stack
+add column RETURNCMCCODE VARCHAR(10);
