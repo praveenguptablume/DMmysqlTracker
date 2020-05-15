@@ -703,7 +703,7 @@ create TRIGGER UPDWLUP_ATTACHMNT_AFTR_INS_UPD
 		END $$
 DELIMITER ;
 																														
--- latest
+-- 615
 drop trigger if exists `invoice_AFTER_INSERT`;
 DELIMITER $$
 create TRIGGER `invoice_AFTER_INSERT`
@@ -1052,3 +1052,8 @@ CREATE or replace VIEW `vwbiddedoffer` AS
 
 alter table stack
 add column RETURNCMCCODE VARCHAR(10);
+	 
+ -----616
+ALTER TABLE Invoice MODIFY RECEIVERID INT NULL;
+ALTER TABLE Invoice MODIFY ORIGINATORID INT NULL;	 
+	 
